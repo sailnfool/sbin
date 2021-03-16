@@ -267,9 +267,10 @@ USAGE="\r\n${scriptname} [-[hostn]] [ -v <#> ] [ [-i <ignoredir> ] ... ] <dirnam
 \t\tsee 'man date' for syntax\r\n
 \t\tIf <dirname> is a file it returns the timestamp for a file not\r\n
 \t\tnot a tree under <dirname>\r\n
+\t-d\t#\tturn on diagnostics 9 for set -x\r\n
 \t-f\treport the name of the newest file\r\n
 \t-h\tPrint this message\r\n
-\t-I\tformat\treport the date in international formats (see date)
+\t-I\tformat\treport the date in international formats (see date)\r\n
 \t-n\tinclude the time stamps of directories\r\n
 \t\tdirectory timestamps are ignored because you may be\r\n
 \t\tlooking at a clone tree\r\n
@@ -314,6 +315,7 @@ do
 		;;
 	f)
 		filetell="1"
+    datetell="0"
 		;;
 	h)
 #		errecho "-e" ${USAGE}
@@ -407,23 +409,27 @@ then
 else
 	ls -l "${dirname}" > /tmp/sourcedate.newest.$$.txt
 fi
-newestfile=$(sed -e s/.*--// < /tmp/sourcedate.newest.$$.txt)
+newestfile=$(sed -e 's/.* //' < /tmp/sourcedate.newest.$$.txt)
 dateonly=$(sed -e 's/ .*//' -e 's/-//g' < /tmp/sourcedate.newest.$$.txt)
-datetime=$(sed -e 's/\..*//' -e 's/ /./' -e 's/-//g' -e 's/://g' < /tmp/sourcedate.newest.$$.txt)
-stamptime=$(sed -e 's/\..*//' -e 's/ //' -e 's/-//g' -e 's/://' -e 's/:/./' < /tmp/sourcedate.newest.$$.txt)
-# datetime2=$(sed -e 's/\..*--.*//' -e 's/ /./' -e 's/-//g' -e 's/://g' </tmp/sourcedate.newest.$$.txt)
-timeonly=$(sed -e 's/\..*//' -e 's/.* //' -e 's/://g' < /tmp/sourcedate.newest.$$.txt)
-internationalonly=$(date -u -I${Iformat} --reference="+${newestfile}")
+datetime=$(sed -e 's/\..*//' -e 's/ /./' -e 's/-//g' -e 's/://g' < \
+  /tmp/sourcedate.newest.$$.txt)
+stamptime=$(sed -e 's/\..*//' -e 's/ //' -e 's/-//g' -e 's/://' \
+  -e 's/:/./' < /tmp/sourcedate.newest.$$.txt)
+# datetime2=$(sed -e 's/\..*--.*//' -e 's/ /./' -e 's/-//g' i\
+# -e 's/://g' </tmp/sourcedate.newest.$$.txt)
+timeonly=$(sed -e 's/\..*//' -e 's/.* //' -e 's/://g' <\
+  /tmp/sourcedate.newest.$$.txt)
+internationalonly=$(date -u -I${Iformat} --reference="${newestfile}")
 if [ "$FUNC_DEBUG" -gt 0 ]
 then
 	ls -l /tmp/sourcedate*$$.txt
 	more /tmp/sourcedate*$$.txt
-	errecho "${FUNCNAME} "${LINENO}" "Newest file is ${newestfile}"
-	errecho "${FUNCNAME} "${LINENO}" "Date only is ${dateonly}"
-	errecho "${FUNCNAME} "${LINENO}" "Date time is ${datetime}"
-	errecho "${FUNCNAME} "${LINENO}" "Date2 time is ${datetime2}"
-	errecho "${FUNCNAME} "${LINENO}" "Time only is ${timeonly}"
-	errecho "${FUNCNAME} "${LINENO}" "STAMP time is ${stamptime}"
+	errecho "${FUNCNAME}" "${LINENO}" "Newest file is ${newestfile}"
+	errecho "${FUNCNAME}" "${LINENO}" "Date only is ${dateonly}"
+	errecho "${FUNCNAME}" "${LINENO}" "Date time is ${datetime}"
+	errecho "${FUNCNAME}" "${LINENO}" "Date2 time is ${datetime2}"
+	errecho "${FUNCNAME}" "${LINENO}" "Time only is ${timeonly}"
+	errecho "${FUNCNAME}" "${LINENO}" "STAMP time is ${stamptime}"
 fi
 if [ "${onlytell}" = "1" ]
 then
@@ -444,9 +450,10 @@ fi
 if [ "${filetell}" = "1" ]
 then
 	echo ${newestfile}
-if [ "${internationaltell} = "1" ]
+fi
+if [ "${internationaltell}" = "1" ]
 then
-  echo -n ${internationalonly} " "
+  echo -n "${internationalonly}" " "
 fi
 echo ""
 rm -f /tmp/sourcedate.newest.$$*
