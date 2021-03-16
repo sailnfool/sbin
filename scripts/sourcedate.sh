@@ -73,6 +73,7 @@ scriptname=${0##*/}
 #       a clone of a source tree will not have accurate directory
 #      	timestamps
 # the optional parameter -d turns on diagnostics.
+# the optional parameter -Iformat provides output in ISO format
 # all of the times are emitted in Universal Time (UCT) format.
 # see 'man stat'
 #
@@ -268,6 +269,7 @@ USAGE="\r\n${scriptname} [-[hostn]] [ -v <#> ] [ [-i <ignoredir> ] ... ] <dirnam
 \t\tnot a tree under <dirname>\r\n
 \t-f\treport the name of the newest file\r\n
 \t-h\tPrint this message\r\n
+\t-I\tformat\treport the date in international formats (see date)
 \t-n\tinclude the time stamps of directories\r\n
 \t\tdirectory timestamps are ignored because you may be\r\n
 \t\tlooking at a clone tree\r\n
@@ -285,7 +287,7 @@ USAGE="\r\n${scriptname} [-[hostn]] [ -v <#> ] [ [-i <ignoredir> ] ... ] <dirnam
 \t-v\tturn on verbose mode for this script\r\n
 \t\tdefault=0 - none, higher integers more verbose\r\n"
 
-optionargs="hfnostv:d:i:"
+optionargs="hfnostv:d:i:I:"
 NUMARGS=1
 FUNC_DEBUG="0"
 export FUNC_DEBUG
@@ -295,6 +297,7 @@ addtell="0"
 stamptell="0"
 filetell="0"
 datetell="1"
+internationaltell="0"
 ignoredir=""
 ignorelist=".archive"
 
@@ -320,6 +323,10 @@ do
 	i)
 		ignorelist="${ignorelist} ${OPTARG}"
 		;;
+  I)
+    internationaltell=1
+    Iformat="${OPTARG}"
+    ;;
 	n)
 		nodirs=""
 		;;
@@ -406,6 +413,7 @@ datetime=$(sed -e 's/\..*//' -e 's/ /./' -e 's/-//g' -e 's/://g' < /tmp/sourceda
 stamptime=$(sed -e 's/\..*//' -e 's/ //' -e 's/-//g' -e 's/://' -e 's/:/./' < /tmp/sourcedate.newest.$$.txt)
 # datetime2=$(sed -e 's/\..*--.*//' -e 's/ /./' -e 's/-//g' -e 's/://g' </tmp/sourcedate.newest.$$.txt)
 timeonly=$(sed -e 's/\..*//' -e 's/.* //' -e 's/://g' < /tmp/sourcedate.newest.$$.txt)
+internationalonly=$(date -u -I${Iformat} --reference="+${newestfile}")
 if [ "$FUNC_DEBUG" -gt 0 ]
 then
 	ls -l /tmp/sourcedate*$$.txt
@@ -436,8 +444,10 @@ fi
 if [ "${filetell}" = "1" ]
 then
 	echo ${newestfile}
-else
-	echo ""
+if [ "${internationaltell} = "1" ]
+then
+  echo -n ${internationalonly} " "
 fi
+echo ""
 rm -f /tmp/sourcedate.newest.$$*
 # vim: set syntax=bash
