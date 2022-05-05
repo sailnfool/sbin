@@ -3,7 +3,7 @@ PREFIX?=/usr/local
 .sh:
 	@rm -f $@
 	cp $< $@
-INSTALL =   sourcedate 
+INSTALL =
 
 EXECDIR := $(PREFIX)/sbin
 
